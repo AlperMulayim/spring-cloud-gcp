@@ -64,6 +64,11 @@ public class DefaultCfConfiguration implements CfConfiguration {
 		return parseCredentialsProviderFromVcapJson("google-cloudsql-postgresql");
 	}
 
+	@Override
+	public CredentialsProvider getTraceCredentialsProvider() {
+		return parseCredentialsProviderFromVcapJson("google-stackdriver-trace");
+	}
+
 	// TODO(joaomartins): Rename and document this.
 	private CredentialsProvider parseCredentialsProviderFromVcapJson(String jsonKey) {
 		byte[] privateKeyData = getPrivateKeyDataForServiceFromVcapJson(jsonKey);

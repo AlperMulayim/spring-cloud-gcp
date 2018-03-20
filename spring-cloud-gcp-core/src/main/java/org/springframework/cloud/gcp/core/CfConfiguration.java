@@ -32,4 +32,6 @@ public interface CfConfiguration {
 	CredentialsProvider getCloudSqlMySqlCredentialsProvider();
 
 	CredentialsProvider getCloudSqlPostgreSqlCredentialsProvider();
+
+	CredentialsProvider getTraceCredentialsProvider();
 }

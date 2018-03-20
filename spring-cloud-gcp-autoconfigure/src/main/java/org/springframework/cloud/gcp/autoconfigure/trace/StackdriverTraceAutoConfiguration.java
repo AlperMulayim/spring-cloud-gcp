@@ -35,6 +35,7 @@ import com.google.cloud.trace.v1.util.RoughTraceSizer;
 import com.google.cloud.trace.v1.util.Sizer;
 import com.google.devtools.cloudtrace.v1.Trace;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -42,6 +43,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.commons.util.IdUtils;
+import org.springframework.cloud.gcp.core.CfConfiguration;
 import org.springframework.cloud.gcp.core.DefaultCredentialsProvider;
 import org.springframework.cloud.gcp.core.GcpProjectIdProvider;
 import org.springframework.cloud.gcp.core.UsageTrackingHeaderProvider;
@@ -86,13 +88,26 @@ public class StackdriverTraceAutoConfiguration {
 
 	public StackdriverTraceAutoConfiguration(GcpProjectIdProvider gcpProjectIdProvider,
 			CredentialsProvider credentialsProvider,
-			GcpTraceProperties gcpTraceProperties) throws IOException {
+			GcpTraceProperties gcpTraceProperties,
+			@Autowired(required = false) CfConfiguration cfConfiguration) throws IOException {
 		this.finalProjectIdProvider = gcpTraceProperties.getProjectId() != null
 				? gcpTraceProperties::getProjectId
 				: gcpProjectIdProvider;
-		this.finalCredentialsProvider = gcpTraceProperties.getCredentials().getLocation() != null
-				? new DefaultCredentialsProvider(gcpTraceProperties)
-				: credentialsProvider;
+
+		CredentialsProvider cfCredentialsProvider = null;
+		if (cfConfiguration != null) {
+			cfCredentialsProvider = cfConfiguration.getTraceCredentialsProvider();
+		}
+
+		if (cfCredentialsProvider != null) {
+			this.finalCredentialsProvider = cfCredentialsProvider;
+		}
+		else if (gcpTraceProperties.getCredentials().getLocation() != null) {
+			this.finalCredentialsProvider = new DefaultCredentialsProvider(gcpTraceProperties);
+		}
+		else {
+			this.finalCredentialsProvider = credentialsProvider;
+		}
 	}
 
 	@Bean
