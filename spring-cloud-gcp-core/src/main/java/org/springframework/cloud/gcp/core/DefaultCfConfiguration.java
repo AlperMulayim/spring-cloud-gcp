@@ -46,31 +46,36 @@ public class DefaultCfConfiguration implements CfConfiguration {
 
 	@Override
 	public CredentialsProvider getStorageCredentialsProvider() {
-		return parseCredentialsProviderFromVcapJson("google-storage");
+		return getCredentialsProviderFromVcapJson("google-storage");
 	}
 
 	@Override
 	public CredentialsProvider getPubSubCredentialsProvider() {
-		return parseCredentialsProviderFromVcapJson("google-pubsub");
+		return getCredentialsProviderFromVcapJson("google-pubsub");
 	}
 
 	@Override
 	public CredentialsProvider getCloudSqlMySqlCredentialsProvider() {
-		return parseCredentialsProviderFromVcapJson("google-cloudsql-mysql");
+		return getCredentialsProviderFromVcapJson("google-cloudsql-mysql");
 	}
 
 	@Override
 	public CredentialsProvider getCloudSqlPostgreSqlCredentialsProvider() {
-		return parseCredentialsProviderFromVcapJson("google-cloudsql-postgresql");
+		return getCredentialsProviderFromVcapJson("google-cloudsql-postgresql");
 	}
 
 	@Override
 	public CredentialsProvider getTraceCredentialsProvider() {
-		return parseCredentialsProviderFromVcapJson("google-stackdriver-trace");
+		return getCredentialsProviderFromVcapJson("google-stackdriver-trace");
 	}
 
-	// TODO(joaomartins): Rename and document this.
-	private CredentialsProvider parseCredentialsProviderFromVcapJson(String jsonKey) {
+	/**
+	 * Builds a {@link CredentialsProvider} for a Cloud Foundry service provisioned by the GCP
+	 * service broker.
+	 * @param jsonKey the name of the GCP service created by the CF GCP service broker
+	 * @return a provider for the credentials provisioned by the GCP service broker
+	 */
+	private CredentialsProvider getCredentialsProviderFromVcapJson(String jsonKey) {
 		byte[] privateKeyData = getPrivateKeyDataForServiceFromVcapJson(jsonKey);
 
 		return privateKeyData != null
@@ -78,6 +83,13 @@ public class DefaultCfConfiguration implements CfConfiguration {
 				: null;
 	}
 
+	/**
+	 * Given the key of the GCP Cloud Foundry service broker (e.g., "google-storage"), returns
+	 * the decoded credentials.PrivateKeyData JSON field which can be used to construct a
+	 * Google credentials object.
+	 * @param jsonKey the name of the GCP service created by the CF GCP service broker
+	 * @return a byte[] containing a decoded string using the ISO_8859_1 encoding
+	 */
 	public byte[] getPrivateKeyDataForServiceFromVcapJson(String jsonKey) {
 		if (this.configurationJsonObject.has(jsonKey)) {
 			JsonElement serviceElement = this.configurationJsonObject.get(jsonKey);
