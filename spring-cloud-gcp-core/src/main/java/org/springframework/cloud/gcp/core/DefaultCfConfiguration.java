@@ -69,6 +69,11 @@ public class DefaultCfConfiguration implements CfConfiguration {
 		return getCredentialsProviderFromVcapJson("google-stackdriver-trace");
 	}
 
+	@Override
+	public CredentialsProvider getSpannerCredentialsProvider() {
+		return getCredentialsProviderFromVcapJson("google-spanner");
+	}
+
 	/**
 	 * Builds a {@link CredentialsProvider} for a Cloud Foundry service provisioned by the GCP
 	 * service broker.

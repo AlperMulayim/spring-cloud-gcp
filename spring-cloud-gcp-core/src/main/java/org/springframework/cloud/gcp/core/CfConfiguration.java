@@ -34,4 +34,6 @@ public interface CfConfiguration {
 	CredentialsProvider getCloudSqlPostgreSqlCredentialsProvider();
 
 	CredentialsProvider getTraceCredentialsProvider();
+
+	CredentialsProvider getSpannerCredentialsProvider();
 }

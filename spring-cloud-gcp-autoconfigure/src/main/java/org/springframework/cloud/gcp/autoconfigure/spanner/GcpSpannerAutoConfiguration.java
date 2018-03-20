@@ -25,11 +25,13 @@ import com.google.cloud.spanner.DatabaseId;
 import com.google.cloud.spanner.Spanner;
 import com.google.cloud.spanner.SpannerOptions;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.gcp.autoconfigure.core.GcpContextAutoConfiguration;
+import org.springframework.cloud.gcp.core.CfConfiguration;
 import org.springframework.cloud.gcp.core.DefaultCredentialsProvider;
 import org.springframework.cloud.gcp.core.GcpProjectIdProvider;
 import org.springframework.cloud.gcp.data.spanner.core.SpannerMutationFactory;
@@ -65,15 +67,29 @@ public class GcpSpannerAutoConfiguration {
 
 	public GcpSpannerAutoConfiguration(GcpSpannerProperties gcpSpannerProperties,
 			GcpProjectIdProvider projectIdProvider,
-			CredentialsProvider credentialsProvider) throws IOException {
-		this.credentials = (gcpSpannerProperties.getCredentials().getLocation() != null
-				? new DefaultCredentialsProvider(gcpSpannerProperties)
-				: credentialsProvider).getCredentials();
+			CredentialsProvider credentialsProvider,
+			@Autowired(required = false) CfConfiguration cfConfiguration) throws IOException {
 		this.projectId = gcpSpannerProperties.getProjectId() != null
 				? gcpSpannerProperties.getProjectId()
 				: projectIdProvider.getProjectId();
 		this.instanceId = gcpSpannerProperties.getInstanceId();
 		this.databaseName = gcpSpannerProperties.getDatabase();
+
+		CredentialsProvider cfCredentialsProvider = null;
+		if (cfConfiguration != null) {
+			cfCredentialsProvider = cfConfiguration.getSpannerCredentialsProvider();
+		}
+
+		if (cfCredentialsProvider != null) {
+			this.credentials = cfCredentialsProvider.getCredentials();
+		}
+		else if (gcpSpannerProperties.getCredentials().getLocation() != null) {
+			this.credentials =
+					new DefaultCredentialsProvider(gcpSpannerProperties).getCredentials();
+		}
+		else {
+			this.credentials = credentialsProvider.getCredentials();
+		}
 	}
 
 	@Bean
