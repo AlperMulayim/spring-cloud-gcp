@@ -30,6 +30,7 @@ import org.springframework.cloud.gcp.core.DefaultGcpProjectIdProvider;
 import org.springframework.cloud.gcp.core.GcpProjectIdProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 
 
 /**
@@ -79,7 +80,7 @@ public class GcpContextAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	@ConditionalOnProperty("VCAP_SERVICES")
-	public CfConfiguration pcfConfiguration() {
-		return new DefaultCfConfiguration(System.getenv("VCAP_SERVICES"));
+	public CfConfiguration pcfConfiguration(Environment env) {
+		return new DefaultCfConfiguration(env.getProperty("VCAP_SERVICES"));
 	}
 }

@@ -96,19 +96,24 @@ public class DefaultCfConfiguration implements CfConfiguration {
 	 * @return a byte[] containing a decoded string using the ISO_8859_1 encoding
 	 */
 	public byte[] getPrivateKeyDataForServiceFromVcapJson(String jsonKey) {
-		if (this.configurationJsonObject.has(jsonKey)) {
-			JsonElement serviceElement = this.configurationJsonObject.get(jsonKey);
-			if (serviceElement.isJsonArray() && ((JsonArray) serviceElement).size() > 0) {
-				JsonElement jsonCredentialsElement = ((JsonArray) serviceElement).get(0);
-				if (jsonCredentialsElement.isJsonObject()
-						&& ((JsonObject) jsonCredentialsElement).has("credentials")) {
-					JsonObject jsonCredentialsObject =
-							(JsonObject) ((JsonObject) jsonCredentialsElement).get("credentials");
-					if (jsonCredentialsObject.has("PrivateKeyData")) {
-						LOGGER.info("Pivotal Cloud Foundry credentials for " + jsonKey
-								+ " found: " + jsonCredentialsObject.get("Name"));
-						return Base64.getDecoder().decode(
-								jsonCredentialsObject.get("PrivateKeyData").getAsString());
+		if (this.configurationJsonObject.has("VCAP_SERVICES")) {
+			JsonObject vcapServices =
+					(JsonObject) this.configurationJsonObject.get("VCAP_SERVICES");
+			if (vcapServices.has(jsonKey)) {
+				JsonArray serviceArray = (JsonArray) vcapServices.get(jsonKey);
+				// TODO(joaomartins): What should be the behaviour when the same service is bound
+				// multiple times to the same app?
+				if (serviceArray.size() > 0) {
+					JsonObject serviceEntry = (JsonObject) serviceArray.get(0);
+					if (serviceEntry.has("credentials")) {
+						JsonObject encodedCredentials =
+								(JsonObject) serviceEntry.get("credentials");
+						if (encodedCredentials.has("PrivateKeyData")) {
+							LOGGER.info("Pivotal Cloud Foundry credentials for " + jsonKey
+									+ " found: " + encodedCredentials.get("Name"));
+							return Base64.getDecoder().decode(
+									encodedCredentials.get("PrivateKeyData").getAsString());
+						}
 					}
 				}
 			}
